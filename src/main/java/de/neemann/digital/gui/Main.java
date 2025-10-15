@@ -16,6 +16,7 @@ import de.neemann.digital.core.element.Keys;
 import de.neemann.digital.core.io.Button;
 import de.neemann.digital.core.io.*;
 import de.neemann.digital.core.memory.ProgramCounter;
+import de.neemann.digital.core.memory.RAMDualPort;
 import de.neemann.digital.core.stats.Statistics;
 import de.neemann.digital.core.wiring.AsyncSeq;
 import de.neemann.digital.core.wiring.Clock;
@@ -2056,6 +2057,77 @@ public final class Main extends JFrame implements ClosingWindowListener.ConfirmS
             }
         }
         return null;
+    }
+
+    @Override
+    public String output(String address) throws RemoteException {
+        List<RAMDualPort> rams = model.findNode(RAMDualPort.class);
+        if (rams.isEmpty()) {
+            throw new RemoteException("No RAM found");
+        }
+        RAMDualPort ram = rams.get(0);
+        long[] memData = ram.getMemory().getData();
+
+        try {
+            // Check if this is a range request (contains ':')
+            if (address.contains(":")) {
+                String[] parts = address.split(":");
+                if (parts.length != 2) {
+                    throw new RemoteException("Invalid range format. Use: startAddress:endAddress");
+                }
+
+                int startAddr = Integer.parseInt(parts[0]);
+                int endAddr = Integer.parseInt(parts[1]);
+
+                if (endAddr < startAddr) {
+                    throw new RemoteException("End address must be >= start address");
+                }
+
+                if (startAddr < 0 || startAddr >= memData.length) {
+                    throw new RemoteException("Start address out of bounds: " + startAddr);
+                }
+
+                if (endAddr >= memData.length) {
+                    throw new RemoteException("End address out of bounds: " + endAddr);
+                }
+
+                StringBuilder result = new StringBuilder("[");
+                for (int i = startAddr; i <= endAddr; i++) {
+                    if (i > startAddr) {
+                        result.append(",");
+                    }
+                    result.append("\"").append(Long.toHexString(memData[i])).append("\"");
+                }
+                result.append("]");
+                return result.toString();
+
+            } else {
+                int a = Integer.parseInt(address);
+
+                if (a < 0 || a >= memData.length) {
+                    throw new RemoteException("Address out of bounds: " + a);
+                }
+
+                long data = memData[a];
+                return Long.toHexString(data);
+            }
+        } catch (NumberFormatException e) {
+            throw new RemoteException("Invalid address format: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public String input(String address, String value)  throws RemoteException {
+        int a = Integer.parseInt(address);
+        long v = Long.parseLong(value);
+        List<RAMDualPort> rams = model.findNode(RAMDualPort.class);
+        RAMDualPort ram = rams.get(0);
+        boolean data = ram.getMemory().setData(a, v);
+        if (data) {
+            return Long.toHexString(v);
+        } else {
+            throw new RemoteException("error writing input to address: "+address);
+        }
     }
 
     @Override

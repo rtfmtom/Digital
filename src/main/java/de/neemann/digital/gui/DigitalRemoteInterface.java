@@ -72,4 +72,23 @@ public interface DigitalRemoteInterface {
      * @throws RemoteException RemoteException
      */
     String measure() throws RemoteException;
+
+    /**
+     * Used to get a value (or range of values a:b) from memory at a given address
+     *
+     * @return value at address in RAM
+     * @param address a single address or a colon delimited range (ex. "output:8192:9215")
+     * @throws RemoteException RemoteException
+     */
+    String output(String address) throws RemoteException;
+
+    /**
+     * Used to initialize a location in RAM with a value
+     *
+     * @return "ok" on success
+     * @param address the target address for writing the input
+     * @param input the value to be writen at the given address in RAM
+     * @throws RemoteException RemoteException
+     */
+    String input(String address, String input) throws RemoteException;
 }
