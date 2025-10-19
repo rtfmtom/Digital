@@ -25,4 +25,4 @@ To enable remote interface access for a circuit:
 
 ### Usage with Hack CPU
 
-For remotely interacting with the [Hack CPU](https://github.com/rtfmtom/CPU) specifically, see [this repository]().
+For remotely interacting with the [Hack CPU](https://github.com/rtfmtom/CPU) specifically, see [this repository](https://github.com/rtfmtom/Life-Hack).
